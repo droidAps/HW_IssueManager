@@ -17,31 +17,43 @@ public class IssueManager {
     }
 
     public List<Issue> showClosedIssues() {
-        List<Issue> closedIssues = repository.findAll();
+        List<Issue> closedIssues = new ArrayList<>();
+        closedIssues.addAll(repository.findAll());
         closedIssues.removeIf(el -> el.isClosed() == false);
         return closedIssues;
     }
 
     public List<Issue> showOpenedIssues() {
-        List<Issue> closedIssues = repository.findAll();
-        closedIssues.removeIf(el -> el.isClosed() == true);
-        return closedIssues;
+        List<Issue> openedIssues = new ArrayList<>();
+        openedIssues.addAll(repository.findAll());
+        openedIssues.removeIf(el -> el.isClosed() == true);
+        return openedIssues;
     }
 
     public List<Issue> filterByAuthor(String author) {
-        List<Issue> authorList = repository.findAll();
+        List<Issue> authorList = new ArrayList<>();
+        authorList.addAll(repository.findAll());
         authorList.removeIf(el -> el.getAuthor() != author);
         return authorList;
     }
 
     public List<Issue> filterByLabel(String label) {
-        List<Issue> labelList = repository.findAll();
-        labelList.removeIf(el -> el.getLabel() != label);
+        List<Issue> labelList = new ArrayList<>();
+        labelList.addAll(repository.findAll());
+        Set<String> labels = repository.findAllLabels();
+        if (labels.contains(label) == false) {
+            throw new NotFoundException(
+                    "Issues with label: " + label + " not found");
+        }
+        Set<String> forComparison = new HashSet<>();
+        forComparison.add(label);
+        labelList.removeIf(el -> el.getLabel().equals(forComparison) == false);
         return labelList;
     }
 
     public List<Issue> filterByAssignee(String assignee) {
-        List<Issue> assigneeList = repository.findAll();
+        List<Issue> assigneeList = new ArrayList<>();
+        assigneeList.addAll(repository.findAll());
         assigneeList.removeIf(el -> el.getAssignee() != assignee);
         return assigneeList;
     }

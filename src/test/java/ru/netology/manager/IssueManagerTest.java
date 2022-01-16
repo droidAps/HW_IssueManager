@@ -8,7 +8,9 @@ import ru.netology.domain.Issue;
 import ru.netology.domain.NotFoundException;
 import ru.netology.repository.IssueRepository;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,7 +24,7 @@ class IssueManagerTest {
     Issue four = new Issue(4, "Issue4", "Ivanov", "status: in progress", "NewProject", "Prohorov", false);
     Issue five = new Issue(5, "Issue5", "Sidorov", "status: in progress", "NewProject", "Ivanov", true);
     Issue six = new Issue(6, "Issue6", "Prohorov", "status: new", "NewProject", "Petrov", false);
-    Issue seven = new Issue(7, "Issue7", "Krivonogov", "status: in progress", "NewProject", "Petrov", true);
+    Issue seven = new Issue(7, "Issue7", "Krivonogov", "status: old", "NewProject", "Petrov", true);
 
     @Nested
     public class Empty {
@@ -75,12 +77,10 @@ class IssueManagerTest {
 
         @Test
         void filterByLabelEmptyTest() {
-            Issue[] expected = new Issue[0];
-
             repo.saveAll(List.of(four, five, three));
-            Issue[] actual = manager.filterByLabel("status: new").toArray(Issue[]::new);
-
-            assertArrayEquals(expected, actual);
+            assertThrows(NotFoundException.class, () -> {
+                manager.filterByLabel("status: new");
+            });
         }
 
         @Test
@@ -143,16 +143,71 @@ class IssueManagerTest {
         }
 
         @Test
+        void shouldAddLabel() {
+            Set<String> expected = new HashSet<>();
+            expected.add("status: new");
+            expected.add("status: in progress");
+            expected.add("status: old");
+
+            manager.add(seven);
+            manager.add(one);
+            manager.add(three);
+            manager.add(four);
+            Set<String> actual = repo.findAllLabels();
+
+            assertTrue(expected.equals(actual));
+        }
+
+        @Test
         void shouldRemoveById() {
-            Issue[] expected = {one, seven};
+            Issue[] expected = {one, two, three, four};
 
             manager.add(one);
-            manager.add(six);
+            manager.add(two);
+            manager.add(three);
+            manager.add(four);
             manager.add(seven);
-            repo.removeById(6);
+            repo.removeById(7);
             Issue[] actual = repo.findAll().toArray(Issue[]::new);
 
             assertArrayEquals(expected, actual);
+        }
+
+        @Test
+        void shouldRemoveByIdForLabel() {
+            Set<String> expected = new HashSet<>();
+            expected.add("status: new");
+            expected.add("status: in progress");
+
+            manager.add(one);
+            manager.add(two);
+            manager.add(three);
+            manager.add(four);
+            manager.add(seven);
+            repo.removeById(7);
+            Set<String> actual = repo.findAllLabels();
+
+            assertTrue(expected.equals(actual));
+        }
+
+        @Test
+        void shouldSaveAllForLabel() {
+            Set<String> expected = new HashSet<>();
+            expected.add("status: new");
+            expected.add("status: in progress");
+            expected.add( "status: old");
+
+
+            manager.add(one);
+            manager.add(two);
+            manager.add(three);
+            manager.add(four);
+            manager.add(seven);
+            manager.add(six);
+            manager.add(five);
+            Set<String> actual = repo.findAllLabels();
+
+            assertTrue(expected.equals(actual));
         }
 
         @Test
